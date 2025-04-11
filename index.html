@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestor de Tareas</title>
     <link rel="stylesheet" href="index.css">
+
 </head>
 <body>
     <div class="container">
@@ -15,8 +16,103 @@
             <button type="submit">Agregar</button>
         </form>
         
+        <ul id="task-list"></ul>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const taskForm = document.getElementById('task-form');
+            const taskInput = document.getElementById('task-input');
+            const taskList = document.getElementById('task-list');
+            
+            // Cargar tareas desde LocalStorage al iniciar
+            loadTasks();
+            
+            // Manejar el envío del formulario
+            taskForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const taskText = taskInput.value.trim();
+                
+                if (taskText !== '') {
+                    addTask(taskText);
+                    taskInput.value = '';
+                    taskInput.focus();
+                }
+            });
+            
+            // Función para añadir una tarea
+            function addTask(taskText) {
+                // Obtener tareas actuales de LocalStorage
+                let tasks = getTasksFromStorage();
+                
+                // Añadir nueva tarea
+                tasks.push(taskText);
+                
+                // Guardar en LocalStorage
+                saveTasksToStorage(tasks);
+                
+                // Actualizar la lista en la interfaz
+                renderTasks(tasks);
+            }
+            
+            // Función para eliminar una tarea
+            function deleteTask(index) {
+                let tasks = getTasksFromStorage();
+                
+                // Eliminar la tarea del array
+                tasks.splice(index, 1);
+                
+                // Guardar en LocalStorage
+                saveTasksToStorage(tasks);
+                
+                // Actualizar la lista en la interfaz
+                renderTasks(tasks);
+            }
+            
+            // Función para obtener tareas de LocalStorage
+            function getTasksFromStorage() {
+                let tasks;
+                if (localStorage.getItem('tasks') === null) {
+                    tasks = [];
+                } else {
+                    tasks = JSON.parse(localStorage.getItem('tasks'));
+                }
+                return tasks;
+            }
+            
+            // Función para guardar tareas en LocalStorage
+            function saveTasksToStorage(tasks) {
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+            }
+            
+            // Función para cargar tareas al iniciar
+            function loadTasks() {
+                let tasks = getTasksFromStorage();
+                renderTasks(tasks);
+            }
+            
+            // Función para mostrar las tareas en la interfaz
+            function renderTasks(tasks) {
+                taskList.innerHTML = '';
+                
+                tasks.forEach(function(task, index) {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <span>${task}</span>
+                        <button class="delete-btn" data-index="${index}">Eliminar</button>
+                    `;
+                    taskList.appendChild(li);
+                });
+                
+                // Añadir event listeners a los botones de eliminar
+                document.querySelectorAll('.delete-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const index = parseInt(this.getAttribute('data-index'));
+                        deleteTask(index);
+                    });
+                });
+            }
+        });
+    </script>
 </body>
 </html>
